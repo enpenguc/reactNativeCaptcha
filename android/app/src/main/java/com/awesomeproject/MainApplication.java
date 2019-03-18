@@ -8,9 +8,6 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 
-// import com.awesomeproject.CustomToastPackage; // <-- 引入你自己的包
-// import com.awesomeproject.CaptchaPackage; // <-- 引入你自己的包
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,8 +23,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-          new CustomToastPackage(), // <-- 添加这一行，类名替换成你的Package类的名字CustomToastPackage.
-          new CaptchaPackage() // <-- 添加这一行，类名替换成你的Package类的名字CaptchaModulePackage.
+          new CaptchaPackage() // <-- 添加这一行，添加的Package类的名字CaptchaPackage.
       );
     }
 

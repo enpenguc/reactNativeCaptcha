@@ -10,77 +10,65 @@
 #import <TCWebCodesSDK/TCWebCodesBridge.h>
 #import <React/RCTRootView.h>
 
-#define appId  @"2073347220"
-
-// @interface CaptchaModule () <NTESVerifyCodeManagerDelegate>
+//#define APPID  @"12313"
 
 @implementation CaptchaModule
 
 // To export a module named CalendarManager
 RCT_EXPORT_MODULE();
 
-// This would name the module AwesomeCalendarManager instead
-// RCT_EXPORT_MODULE(AwesomeCalendarManager);
+//// 导出常量
+//- (NSDictionary *)constantsToExport
+//{
+//  return @{ @"APPID": APPID };
+//}
 
+// callback方式
+//RCT_EXPORT_METHOD(showCaptcha:(NSString *)appId2 callback:(RCTPromiseRejectBlock)callback)
+//{
+//  dispatch_async(dispatch_get_main_queue(), ^{
+//    [[TCWebCodesBridge sharedBridge] loadTencentCaptcha:[self getCurrentVC].view appid:appId callback:^(NSDictionary *resultJSON) {
+//      callback(@[resultJSON]);
+//    }];
+//  });
+//}
+//
 
-RCT_EXPORT_METHOD(showCaptcha)
+// promise模式
+RCT_EXPORT_METHOD(showCaptcha:(NSString *)appId resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 {
-//  RCTLogInfo(@"Pretending to create an event %@", appId);
-//  UIAlertView *mBoxView = [[UIAlertView alloc] initWithTitle:@"验证成功" message:@"showCaptcha..." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-//  [mBoxView show];
-
-//  [[TCWebCodesBridge sharedBridge] setCapOptions:@{@"sdkClose": @YES}];
-
-//  UIView *view = [[UIView alloc] initWithFrame:CGRectMake(10, 220 , 280, 250)];
-  UIView *view =  [[UIView alloc] initWithFrame:CGRectMake(10, 220 , 280, 250)];
-
-//  UIView *view = [[[UIApplication sharedApplication] delegate] window].rootViewController.view;
-//  UnityAppController* appController = GetAppController();
-  // 加载腾讯验证码
-  [[TCWebCodesBridge sharedBridge] loadTencentCaptcha:view appid:appId callback:^(NSDictionary *resultJSON) {
-    [self showResultJson:resultJSON];
-  }];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[TCWebCodesBridge sharedBridge] loadTencentCaptcha:[self getCurrentVC].view appid:appId callback:^(NSDictionary *resultJSON) {
+      resolve(resultJSON);
+    }];
+  });
 }
 
 - (UIViewController *)getCurrentVC
 {
-  UIViewController *result = nil;
-  
-  UIWindow * window = [[UIApplication sharedApplication] keyWindow];
-  if (window.windowLevel != UIWindowLevelNormal)
-  {
-    NSArray *windows = [[UIApplication sharedApplication] windows];
-    for(UIWindow * tmpWin in windows)
-    {
-      if (tmpWin.windowLevel == UIWindowLevelNormal)
-      {
-        window = tmpWin;
-        break;
-      }
-    }
-  }
-  
-  UIView *frontView = [[window subviews] objectAtIndex:0];
-  id nextResponder = [frontView nextResponder];
-  
-  if ([nextResponder isKindOfClass:[UIViewController class]])
-    result = nextResponder;
-  else
-    result = window.rootViewController;
-  
-  return result;
+  UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+  UIViewController *currentVC = [self getCurrentVCFrom:rootViewController];
+  return currentVC;
 }
 
-
-- (void)showResultJson:(NSDictionary*)resultJSON {
-   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-       NSString* jsonStr = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:resultJSON options:0 error:NULL] encoding:NSUTF8StringEncoding];
-       if (0 == [resultJSON[@"ret"] intValue]) {
-           [[[UIAlertView alloc] initWithTitle:@"验证成功" message:jsonStr delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
-       } else {
-           [[[UIAlertView alloc] initWithTitle:@"验证失败" message:jsonStr delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
-       }
-   });
+- (UIViewController *)getCurrentVCFrom:(UIViewController *)rootVC
+{
+  UIViewController *currentVC;
+  if ([rootVC presentedViewController]) {
+    // 视图是被presented出来的
+    rootVC = [rootVC presentedViewController];
+  }
+  if ([rootVC isKindOfClass:[UITabBarController class]]) {
+    // 根视图为UITabBarController
+    currentVC = [self getCurrentVCFrom:[(UITabBarController *)rootVC selectedViewController]];
+  } else if ([rootVC isKindOfClass:[UINavigationController class]]){
+    // 根视图为UINavigationController
+    currentVC = [self getCurrentVCFrom:[(UINavigationController *)rootVC visibleViewController]];
+  } else {
+    // 根视图为非导航类
+    currentVC = rootVC;
+  }
+  return currentVC;
 }
 
 @end

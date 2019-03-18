@@ -9,87 +9,46 @@
 
 import React, { Component } from 'react';
 import {
-  Platform, 
-  StyleSheet, 
   Text, 
   Button, 
   View, 
-  ToastAndroid, 
-  NativeModules,
 } from 'react-native';
 
-import HelloWorld from './src/components/HelloWorld';
-import ToastExample from './src/components/ToastExample';
-// import CaptchaModule from './src/components/CaptchaModule';
+import { CaptchaModule } from './src/nativeModules';
 
 
 export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      captchaData: '',
+    };
+  }
   render() {
-    const onPressLearnMore = async () => {
-      // ToastAndroid.show("A pikachu appeared nearby !", ToastAndroid.SHORT);
-      // ToastExample.show("Awesome", ToastExample.SHORT);
-      NativeModules.CaptchaModule.showCaptcha();
-      // try {
-      //   const res = await NativeModules.CaptchaHelper.showCaptcha();
-      //   const { success, captchaData } = res;
-      //   if (success) {
-      //     // ToastAndroid.show(`验证通过，captchaData=${JSON.stringify(captchaData)}`, ToastAndroid.SHORT);
-      //   }
-      // } catch(e) {
-      //   // ToastAndroid.show(`errorCode=${e.code}, errorMessage=${e.message}`, ToastAndroid.SHORT);
-      // }
+    const onPressCaptcha = async () => {
+      try {
+        const appId = '2073347220';
+        const res = await CaptchaModule.showCaptcha(appId);
+        this.setState({
+          captchaData: JSON.stringify(res),
+        });
+        if (res.ret === 0) {
+          alert("验证通过");
+        }
+      } catch(e) {
+        alert(`验证发生异常, error=${e.message}`);
+      }
     }
   
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        {/* <HelloWorld></HelloWorld> */}
+        <Text>验证返回值：</Text>
+        <Text>{this.state.captchaData}</Text>
         <Button 
           title="提 交"
-          onPress={onPressLearnMore}
+          onPress={onPressCaptcha}
         />
       </View>
     )
   }
 }
-
-// import React, {Component} from 'react';
-// import {Platform, StyleSheet, Text, View} from 'react-native';
-
-// const instructions = Platform.select({
-//   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-//   android:
-//     'Double tap R on your keyboard to reload,\n' +
-//     'Shake or press menu button for dev menu',
-// });
-
-// type Props = {};
-// export default class App extends Component<Props> {
-//   render() {
-//     return (
-//       <View style={styles.container}>
-//         <Text style={styles.welcome}>Welcome to React Native! 222 333</Text>
-//         <Text style={styles.instructions}>To get started, edit App.js</Text>
-//         <Text style={styles.instructions}>{instructions}</Text>
-//       </View>
-//     );
-//   }
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#F5FCFF',
-//   },
-//   welcome: {
-//     fontSize: 20,
-//     textAlign: 'center',
-//     margin: 10,
-//   },
-//   instructions: {
-//     textAlign: 'center',
-//     color: '#333333',
-//     marginBottom: 5,
-//   },
-// });

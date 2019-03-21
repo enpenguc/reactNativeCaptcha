@@ -19,6 +19,7 @@ import org.json.JSONObject;
 public class CaptchaModule extends ReactContextBaseJavaModule {
     private TCaptchaDialog dialog;
     private Promise verifyPromise;
+    private Promise verifyAppId;
     private TCaptchaVerifyListener captchaVerifyListener = new TCaptchaVerifyListener() {
         @Override
         public void onVerifyCallback(JSONObject jsonObject) {
@@ -39,7 +40,7 @@ public class CaptchaModule extends ReactContextBaseJavaModule {
     public CaptchaModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
-  
+
     @Override
     public String getName() {
         return "CaptchaModule";
@@ -56,27 +57,54 @@ public class CaptchaModule extends ReactContextBaseJavaModule {
     // }
 
 
+    // /**
+    //  *  暴露给react访问发方法
+    //  */
+    // @ReactMethod
+    // public void showCaptcha(String appId, Promise promise) {
+    //     try {
+    //     //    toastMsg("showCaptcha start...");
+    //         if (dialog != null){
+    //          dialog.dismiss();
+    //         }
+    //         verifyPromise = promise;
+    //         dialog = new TCaptchaDialog(getCurrentActivity(), appId, captchaVerifyListener, "ssss");
+    //         dialog.show();
+    //     } catch(Exception e) {
+    //         promise.reject("500", "Verify error", e);
+    //         // e.printStackTrace();
+    //     }
+    // }
+
     /**
      *  暴露给react访问发方法
      */
     @ReactMethod
     public void showCaptcha(String appId, Promise promise) {
-        try {
-        //    toastMsg("showCaptcha start...");
-            if (dialog != null){
-             dialog.dismiss();
+        verifyAppId = appId;
+        verifyPromise = promise;
+        // fixbug: Calling View methods on another thread than the UI thread
+        getCurrentActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //    toastMsg("showCaptcha start...");
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+
+                    dialog = new TCaptchaDialog(getCurrentActivity(), verifyAppId, captchaVerifyListener, "ssss");
+                    dialog.show();
+                } catch (Exception e) {
+                    verifyPromise.reject("500", "Verify error", e);
+                    // e.printStackTrace();
+                }
             }
-            verifyPromise = promise;
-            dialog = new TCaptchaDialog(getCurrentActivity(), appId, captchaVerifyListener, "ssss");
-            dialog.show();
-        } catch(Exception e) {
-            promise.reject("500", "Verify error", e);
-            // e.printStackTrace();
-        }
+        });
     }
 
     // private void toastMsg(String msg) {
     //     Toast.makeText(getCurrentActivity(), msg, Toast.LENGTH_SHORT).show();
     // }
-  
+
 }
